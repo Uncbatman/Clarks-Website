@@ -4,148 +4,526 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clarks Shoe Store — Showroom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-wall: #121214;
-      --bg-card: #1c1c21;
-      --shelf-top: #3a2d24;
-      --shelf-front: #261d17;
-      --text-main: #f5f5f7;
-      --text-muted: #9e9ea8;
-      --accent: #e5a93c;
+      --bg-wall: #0e0e10;
+      --bg-wall-glow: #18181c;
+      --bg-card: #17171b;
+      --shelf-top: #4a382c;
+      --shelf-mid: #2f231b;
+      --shelf-bottom: #1b140f;
+      --text-main: #f4f3ef;
+      --text-muted: #9a9893;
+      --accent: #e2a84b;
       --whatsapp: #25d366;
       --in-stock: #34c759;
       --out-stock: #ff453a;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg-wall); color: var(--text-main); line-height: 1.5;
-      overflow-x: hidden; padding-bottom: 60px;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 0%, var(--bg-wall-glow) 0%, var(--bg-wall) 75%);
+      color: var(--text-main);
+      line-height: 1.5;
+      overflow-x: hidden;
+      padding-bottom: 96px; /* Clears floating WhatsApp pill on small phones */
+      min-height: 100vh;
     }
+
     body.locked { overflow: hidden; }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
+    /* Sticky Glass Header */
     header {
-      position: sticky; top: 0; z-index: 20;
-      background: rgba(18,18,20,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,.08); padding: 16px 20px;
-    }
-    .header-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .brand h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
-    .brand p { font-size: .78rem; color: var(--text-muted); }
-    .header-badge {
-      font-size: .75rem; font-weight: 600; color: var(--accent);
-      background: rgba(229,169,60,.12); border: 1px solid rgba(229,169,60,.3);
-      padding: 6px 12px; border-radius: 99px; white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      background: rgba(14, 14, 16, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 14px 20px;
     }
 
-    main { max-width: 1200px; margin: 24px auto 0; padding: 0 16px; }
-    .status { text-align: center; color: var(--text-muted); font-size: .9rem; padding: 40px 0; }
-    .shelf-section { margin-bottom: 36px; }
-    .shelf-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; padding: 0 4px; }
-    .shelf-header h2 { font-size: 1.05rem; font-weight: 600; letter-spacing: .3px; }
-    .shelf-nav { display: none; gap: 6px; }
-    .shelf-nav button {
-      background: rgba(255,255,255,.08); border: none; color: var(--text-main);
-      width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
     }
-    .swipe-hint { font-size: .75rem; color: var(--text-muted); }
-    @media (hover: hover) and (min-width: 768px) { .shelf-nav { display: flex; } .swipe-hint { display: none; } }
+
+    .brand h1 {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 1.85rem;
+      font-weight: 400;
+      letter-spacing: 0.4px;
+      line-height: 1.1;
+    }
+
+    .brand p {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(226, 168, 75, 0.1);
+      border: 1px solid rgba(226, 168, 75, 0.28);
+      padding: 6px 12px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    /* Size Filter Bar */
+    .filter-bar {
+      max-width: 1240px;
+      margin: 18px auto 0;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+
+    .filter-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+      margin-right: 4px;
+    }
+
+    .filter-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 13px;
+      border-radius: 99px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+
+    .filter-pill:hover { background: rgba(255, 255, 255, 0.12); }
+    .filter-pill.active {
+      background: var(--accent);
+      color: #111;
+      border-color: var(--accent);
+    }
+
+    /* Showroom Layout */
+    main {
+      max-width: 1240px;
+      margin: 26px auto 0;
+      padding: 0 20px;
+    }
+
+    .status {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      padding: 48px 0;
+    }
+
+    .shelf-section {
+      margin-bottom: 44px;
+      position: relative;
+    }
+
+    .shelf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .shelf-header h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.1px;
+      color: #d6d4ce;
+    }
+
+    .shelf-nav { display: none; gap: 8px; }
+    .shelf-nav button {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .shelf-nav button:hover { background: rgba(255, 255, 255, 0.16); }
+
+    .swipe-hint { font-size: 0.74rem; color: var(--text-muted); }
+    @media (hover: hover) and (min-width: 768px) {
+      .shelf-nav { display: flex; }
+      .swipe-hint { display: none; }
+    }
+
+    /* Full-Width Architectural Shelf Stage */
+    .shelf-stage {
+      position: relative;
+    }
+
+    /* Continuous full-width wooden ledge behind the shoes */
+    .shelf-ledge-full {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 132px; /* Aligns cleanly right under shoe soles on mobile */
+      height: 14px;
+      background: linear-gradient(180deg, var(--shelf-top) 0%, var(--shelf-mid) 65%, var(--shelf-bottom) 100%);
+      border-radius: 3px;
+      box-shadow:
+        0 18px 28px rgba(0, 0, 0, 0.85),
+        0 4px 8px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @media (min-width: 768px) {
+      .shelf-ledge-full { top: 162px; }
+    }
 
     .shelf-track {
-      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
-      padding: 10px 6px 4px; scrollbar-width: none;
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 6px 4px 10px;
+      scrollbar-width: none;
+      position: relative;
+      z-index: 2;
     }
     .shelf-track::-webkit-scrollbar { display: none; }
 
+    /* Shoe Card on Shelf */
     .shoe-item {
-      flex: 0 0 175px; padding: 0 9px; scroll-snap-align: start; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-      background: none; border: none; color: inherit; font: inherit;
+      flex: 0 0 168px;
+      scroll-snap-align: start;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: none;
+      border: none;
+      color: inherit;
+      font: inherit;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
     }
-    @media (min-width: 768px) { .shoe-item { flex-basis: 220px; } }
 
-    /* The shelf: each item draws its own slice of ledge, so shoes always sit on it */
-    .shoe-img-wrap {
-      width: 100%; height: 135px; display: flex; align-items: flex-end; justify-content: center;
-      position: relative; padding-bottom: 12px;
-    }
-    @media (min-width: 768px) { .shoe-img-wrap { height: 165px; } }
-    .shoe-img-wrap::after {
-      content: ""; position: absolute; left: -9px; right: -9px; bottom: 0; height: 12px;
-      background: linear-gradient(180deg, var(--shelf-top), var(--shelf-front));
-      box-shadow: 0 12px 20px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.12);
-    }
-    .shoe-img-wrap img {
-      position: relative; z-index: 1; max-width: 92%; max-height: 100%; object-fit: contain;
-      filter: drop-shadow(0 10px 8px rgba(0,0,0,.65)); border-radius: 10px;
-    }
-    .shoe-item.sold .shoe-img-wrap img { opacity: .45; }
-    .sold-tag {
-      position: absolute; z-index: 2; top: 6px; right: 14px; font-size: .68rem; font-weight: 700;
-      color: var(--out-stock); background: rgba(255,69,58,.15); padding: 2px 8px; border-radius: 99px;
-    }
-    .shoe-meta { margin-top: 18px; width: 100%; }
-    .shoe-name { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .shoe-price { font-size: .85rem; color: var(--accent); font-weight: 700; margin-top: 2px; }
-
-    .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-      z-index: 50; display: flex; align-items: flex-end; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity .25s ease;
-    }
-    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
-    @media (min-width: 768px) { .modal-backdrop { align-items: center; padding: 24px; } }
-    .modal-card {
-      background: var(--bg-card); width: 100%; max-width: 520px; border-radius: 24px 24px 0 0;
-      border: 1px solid rgba(255,255,255,.1); padding: 24px 20px 28px;
-      transform: translateY(100%); transition: transform .3s cubic-bezier(.22,1,.36,1);
-      max-height: 90vh; overflow-y: auto;
-    }
-    .modal-backdrop.active .modal-card { transform: translateY(0); }
     @media (min-width: 768px) {
-      .modal-card { border-radius: 20px; padding: 28px; transform: scale(.95); }
+      .shoe-item { flex-basis: 215px; }
+      .shoe-item:hover { transform: translateY(-6px); }
+    }
+
+    .shoe-item.dimmed {
+      opacity: 0.24;
+      transform: scale(0.96);
+    }
+
+    .shoe-img-wrap {
+      width: 100%;
+      height: 132px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    @media (min-width: 768px) {
+      .shoe-img-wrap { height: 162px; }
+    }
+
+    /* Subtle spotlight behind each shoe */
+    .shoe-img-wrap::before {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+      bottom: 8px;
+      pointer-events: none;
+    }
+
+    .shoe-img-wrap img {
+      position: relative;
+      z-index: 2;
+      max-width: 90%;
+      max-height: 94%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.75));
+      border-radius: 10px;
+    }
+
+    .shoe-item.sold .shoe-img-wrap img { opacity: 0.45; }
+
+    .sold-tag {
+      position: absolute;
+      z-index: 3;
+      top: 6px;
+      right: 10px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #ff6b63;
+      background: rgba(255, 69, 58, 0.16);
+      border: 1px solid rgba(255, 69, 58, 0.3);
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    .shoe-meta {
+      margin-top: 22px; /* Clears the 14px wooden shelf ledge cleanly */
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    .shoe-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shoe-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .shoe-price {
+      font-size: 0.86rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    /* Bottom Sheet / Centered Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 50;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
+
+    @media (min-width: 768px) {
+      .modal-backdrop { align-items: center; padding: 24px; }
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 500px;
+      border-radius: 24px 24px 0 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 22px 20px 28px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.active .modal-card { transform: translateY(0); }
+
+    @media (min-width: 768px) {
+      .modal-card {
+        border-radius: 20px;
+        padding: 28px;
+        transform: scale(0.95);
+      }
       .modal-backdrop.active .modal-card { transform: scale(1); }
     }
-    @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 
-    .modal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .stock-pill { font-size: .75rem; font-weight: 700; padding: 4px 10px; border-radius: 99px; text-transform: uppercase; letter-spacing: .4px; }
-    .stock-pill.in { background: rgba(52,199,89,.15); color: var(--in-stock); }
-    .stock-pill.out { background: rgba(255,69,58,.15); color: var(--out-stock); }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; scroll-behavior: auto !important; }
+    }
+
+    .modal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .stock-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stock-pill.in { background: rgba(52, 199, 89, 0.14); color: var(--in-stock); }
+    .stock-pill.out { background: rgba(255, 69, 58, 0.14); color: var(--out-stock); }
+
     .close-btn {
-      background: rgba(255,255,255,.08); border: none; color: var(--text-main);
-      width: 34px; height: 34px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-main);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
     }
+
     .modal-img-box {
-      background: radial-gradient(circle, rgba(255,255,255,.06) 0%, rgba(0,0,0,0) 70%);
-      height: 190px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.07) 0%, transparent 72%);
+      height: 195px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
     }
-    .modal-img-box img { max-height: 175px; max-width: 90%; object-fit: contain; filter: drop-shadow(0 14px 16px rgba(0,0,0,.7)); border-radius: 12px; }
-    .modal-title { font-size: 1.35rem; font-weight: 700; }
-    .modal-price { font-size: 1.15rem; font-weight: 700; color: var(--accent); margin: 4px 0 16px; }
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: rgba(0,0,0,.25); padding: 14px; border-radius: 12px; margin-bottom: 18px; font-size: .85rem; }
-    .detail-label { color: var(--text-muted); font-size: .75rem; display: block; margin-bottom: 2px; }
-    .size-label { font-size: .8rem; color: var(--text-muted); margin-bottom: 8px; display: block; }
-    .size-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+
+    .modal-img-box img {
+      max-height: 180px;
+      max-width: 90%;
+      object-fit: contain;
+      filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.75));
+      border-radius: 12px;
+    }
+
+    .modal-title {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 1.75rem;
+      font-weight: 400;
+      line-height: 1.15;
+    }
+
+    .modal-price {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 4px 0 16px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 13px 14px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      font-size: 0.84rem;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .size-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+      font-weight: 600;
+    }
+
+    .size-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
     .size-btn {
-      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); color: var(--text-main);
-      padding: 8px 14px; border-radius: 8px; font-size: .85rem; font-weight: 600; cursor: pointer;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 9px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
     }
-    .size-btn.selected { background: var(--accent); color: #121214; border-color: var(--accent); }
+
+    .size-btn.selected {
+      background: var(--accent);
+      color: #111;
+      border-color: var(--accent);
+    }
+
     .wa-order-btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 15px;
-      border-radius: 12px; background: var(--whatsapp); color: #0b1a10; font-size: 1rem; font-weight: 700;
-      text-decoration: none; border: none; cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      background: var(--whatsapp);
+      color: #08180d;
+      font-size: 0.98rem;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
     }
-    .wa-order-btn.disabled { background: #3a3a42; color: #8e8e98; pointer-events: none; }
-    .wa-order-btn.notify { background: transparent; border: 1px solid var(--whatsapp); color: var(--whatsapp); }
+
+    .wa-order-btn:hover { opacity: 0.92; }
+    .wa-order-btn.notify {
+      background: rgba(37, 211, 102, 0.12);
+      border: 1px solid var(--whatsapp);
+      color: var(--whatsapp);
+    }
 
     .wa-float {
-      position: fixed; right: 16px; bottom: 16px; z-index: 30; background: var(--whatsapp); color: #0b1a10;
-      font-weight: 700; font-size: .9rem; text-decoration: none; padding: 12px 18px; border-radius: 99px;
-      box-shadow: 0 8px 20px rgba(0,0,0,.5);
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 30;
+      background: var(--whatsapp);
+      color: #08180d;
+      font-weight: 700;
+      font-size: 0.86rem;
+      text-decoration: none;
+      padding: 11px 18px;
+      border-radius: 99px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
     }
   </style>
 </head>
@@ -161,15 +539,17 @@
     </div>
   </header>
 
+  <nav class="filter-bar" id="filter-bar" aria-label="Filter by shoe size" hidden></nav>
+
   <main id="showroom"><div class="status">Loading the shelves…</div></main>
 
-  <a class="wa-float" id="wa-float" href="#" target="_blank" rel="noopener">Chat on WhatsApp</a>
+  <a class="wa-float" id="wa-float" href="#" target="_blank" rel="noopener">Ask on WhatsApp</a>
 
   <div class="modal-backdrop" id="modal-backdrop" onclick="closeModalOnBackdrop(event)">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-top">
         <span class="stock-pill in" id="modal-stock">In Stock</span>
-        <button class="close-btn" onclick="closeModal()" aria-label="Close">✕</button>
+        <button class="close-btn" id="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
       </div>
       <div class="modal-img-box"><img id="modal-img" src="" alt="" /></div>
       <h3 class="modal-title" id="modal-title"></h3>
@@ -178,32 +558,26 @@
         <div><span class="detail-label">Colour</span><strong id="modal-color"></strong></div>
         <div><span class="detail-label">Delivery</span><strong id="modal-delivery"></strong></div>
       </div>
-      <span class="size-label" id="size-label">Pick your size (EU):</span>
+      <span class="size-label" id="size-label">Select Size (EU):</span>
       <div class="size-options" id="modal-sizes"></div>
-      <a id="wa-btn" class="wa-order-btn disabled" href="#" target="_blank" rel="noopener">Pick a size to order</a>
+      <a id="wa-btn" class="wa-order-btn" href="#" target="_blank" rel="noopener">Order on WhatsApp</a>
     </div>
   </div>
 
   <script>
     // ==========================================================
-    // 1. PER-CLIENT SETTINGS: the only part you edit per client
+    // 1. PER-CLIENT SETTINGS
     // ==========================================================
     const STORE_CONFIG = {
       name: "Clarks Shoe Store",
       tagline: "Nairobi Showroom • Tap any pair for details",
-      badge: "Same-Day Delivery",          // leave "" to hide
-      whatsappNumber: "254700000000",       // client's number, no + sign
+      badge: "Same-Day Delivery",
+      whatsappNumber: "254700000000", // Client's WhatsApp number without +
       currency: "KSh",
-
-      // Paste the Google Sheet "Publish to web → CSV" link here.
-      // While empty, the sample shoes below are shown instead.
-      SHEET_CSV_URL: "",
-
-      refreshMinutes: 2                     // how often the page re-checks the sheet
+      SHEET_CSV_URL: "",              // Paste Google Sheet "Publish to web -> CSV" link
+      refreshMinutes: 2
     };
 
-    // Sample stock, shown only when no sheet is connected (or the sheet can't be reached
-    // and nothing was saved from an earlier visit).
     const SAMPLE_CSV = `shelf,name,price,color,sizes,in_stock,delivery,image
 Top Shelf • Signature Originals,Clarks Desert Boot,"6,500",Beeswax Leather,"40, 41, 42, 43, 44",yes,2–4 hrs in Nairobi (KSh 300),https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&w=500&q=80
 Top Shelf • Signature Originals,Wallabee Suede Low,"5,800",Maple Suede,"39, 40, 41, 42",yes,2–4 hrs in Nairobi (KSh 300),https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=500&q=80
@@ -215,15 +589,16 @@ Middle Shelf • Office & Formal,Bradley Vibe Slip-On,"4,900",Espresso Brown,"40
 Middle Shelf • Office & Formal,Cotrell Edge Casual,"4,800",Tobacco Leather,"41, 42, 43, 44",yes,Same-day rider / Countrywide,https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=500&q=80`;
 
     // ==========================================================
-    // 2. SHEET READING
+    // 2. DATA & CSV PARSER
     // ==========================================================
-    const CACHE_KEY = "showroom-stock-v1:" + STORE_CONFIG.name;
+    const CACHE_KEY = "showroom-stock-v2:" + STORE_CONFIG.name;
     const PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><rect width="300" height="200" rx="16" fill="#2a2a31"/><text x="150" y="106" fill="#9e9ea8" font-family="sans-serif" font-size="14" text-anchor="middle">Photo coming soon</text></svg>');
+      '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><rect width="300" height="200" rx="16" fill="#232329"/><text x="150" y="106" fill="#9a9893" font-family="sans-serif" font-size="14" text-anchor="middle">Photo coming soon</text></svg>'
+    );
 
-    // Reads CSV, including quoted cells that contain commas.
     function parseCSV(text) {
-      const rows = []; let row = [], cell = "", inQ = false;
+      const rows = [];
+      let row = [], cell = "", inQ = false;
       text = text.replace(/^\uFEFF/, "");
       for (let i = 0; i < text.length; i++) {
         const c = text[i];
@@ -245,26 +620,32 @@ Middle Shelf • Office & Formal,Cotrell Edge Casual,"4,800",Tobacco Leather,"41
       return rows;
     }
 
-    // Turns sheet rows into shelves. Column names can be in any order; unknown columns are ignored.
     function csvToInventory(text) {
       const rows = parseCSV(text);
       if (rows.length < 2) return [];
       const head = rows[0].map(h => h.trim().toLowerCase().replace(/[\s-]+/g, "_"));
-      const col = name => head.indexOf(name);
-      const get = (r, name) => { const i = col(name); return i < 0 ? "" : (r[i] || "").trim(); };
+      const get = (r, name) => {
+        const i = head.indexOf(name);
+        return i < 0 ? "" : (r[i] || "").trim();
+      };
 
       const shelves = [], byName = {};
-      rows.slice(1).forEach(r => {
+      rows.slice(1).forEach((r, idx) => {
         const name = get(r, "name");
         if (!name) return;
-        const shelfName = get(r, "shelf") || "Our Shoes";
-        if (!byName[shelfName]) { byName[shelfName] = { shelf: shelfName, items: [] }; shelves.push(byName[shelfName]); }
+        const color = get(r, "color") || "Standard";
+        const shelfName = get(r, "shelf") || "Featured Pairs";
+        if (!byName[shelfName]) {
+          byName[shelfName] = { shelf: shelfName, items: [] };
+          shelves.push(byName[shelfName]);
+        }
         const stockWord = get(r, "in_stock").toLowerCase();
         byName[shelfName].items.push({
-          id: shelves.reduce((n, s) => n + s.items.length, 0),
+          key: `${name}::${color}`.toLowerCase(), // Unique composite key
+          id: idx,
           name,
           price: get(r, "price"),
-          color: get(r, "color") || "—",
+          color,
           sizes: get(r, "sizes").split(/[,;/|\s]+/).filter(Boolean),
           inStock: ["yes", "y", "true", "1", "in stock", "instock"].includes(stockWord),
           delivery: get(r, "delivery") || "Ask us on WhatsApp",
@@ -277,40 +658,74 @@ Middle Shelf • Office & Formal,Cotrell Edge Casual,"4,800",Tobacco Leather,"41
     async function loadInventory() {
       if (!STORE_CONFIG.SHEET_CSV_URL) return { data: csvToInventory(SAMPLE_CSV), source: "sample" };
       try {
-        const res = await fetch(STORE_CONFIG.SHEET_CSV_URL + (STORE_CONFIG.SHEET_CSV_URL.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" });
+        const sep = STORE_CONFIG.SHEET_CSV_URL.includes("?") ? "&" : "?";
+        const res = await fetch(`${STORE_CONFIG.SHEET_CSV_URL}${sep}t=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const text = await res.text();
         const data = csvToInventory(text);
-        if (!data.length) throw new Error("Sheet had no shoes");
+        if (!data.length) throw new Error("Empty sheet");
         try { localStorage.setItem(CACHE_KEY, text); } catch (e) {}
         return { data, source: "live" };
       } catch (err) {
         try {
           const saved = localStorage.getItem(CACHE_KEY);
-          if (saved) { const data = csvToInventory(saved); if (data.length) return { data, source: "saved" }; }
+          if (saved) {
+            const data = csvToInventory(saved);
+            if (data.length) return { data, source: "saved" };
+          }
         } catch (e) {}
         return { data: csvToInventory(SAMPLE_CSV), source: "sample" };
       }
     }
 
     // ==========================================================
-    // 3. SHOWROOM
+    // 3. STATE & RENDERING
     // ==========================================================
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const showroomEl = document.getElementById("showroom");
-    let INVENTORY = [], activeShoe = null, selectedSize = "", lastSig = "";
+    const filterBarEl = document.getElementById("filter-bar");
+
+    let INVENTORY = [];
+    let activeShoe = null;
+    let selectedSize = "";
+    let activeSizeFilter = "ALL";
+    let lastTriggerEl = null;
+    let lastSig = "";
 
     document.getElementById("store-name").textContent = STORE_CONFIG.name;
-    document.title = STORE_CONFIG.name + " — Showroom";
+    document.title = `${STORE_CONFIG.name} — Showroom`;
     const badge = document.getElementById("header-badge");
     if (STORE_CONFIG.badge) badge.textContent = STORE_CONFIG.badge; else badge.hidden = true;
     document.getElementById("wa-float").href =
-      `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${encodeURIComponent("Hi " + STORE_CONFIG.name + ", I have a question.")}`;
+      `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${encodeURIComponent("Hi " + STORE_CONFIG.name + ", I'd like to inquire about your shoes.")}`;
 
     function setTagline(source) {
       const el = document.getElementById("store-tagline");
       const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      el.textContent = source === "live" ? `${STORE_CONFIG.tagline} • Stock checked ${t}` : STORE_CONFIG.tagline;
+      el.textContent = source === "live" ? `${STORE_CONFIG.tagline} • Updated ${t}` : STORE_CONFIG.tagline;
+    }
+
+    function renderSizeFilter() {
+      const allSizes = new Set();
+      INVENTORY.forEach(row => row.items.forEach(shoe => {
+        if (shoe.inStock) shoe.sizes.forEach(sz => allSizes.add(sz));
+      }));
+      const sorted = [...allSizes].sort((a, b) => Number(a) - Number(b));
+      if (!sorted.length) { filterBarEl.hidden = true; return; }
+
+      filterBarEl.hidden = false;
+      filterBarEl.innerHTML = `<span class="filter-label">Your Size:</span>` +
+        [`ALL`, ...sorted].map(sz => `
+          <button type="button" class="filter-pill ${activeSizeFilter === sz ? "active" : ""}" onclick="setSizeFilter('${esc(sz)}')">
+            ${sz === "ALL" ? "All Sizes" : `EU ${esc(sz)}`}
+          </button>
+        `).join("");
+    }
+
+    function setSizeFilter(sz) {
+      activeSizeFilter = sz;
+      renderSizeFilter();
+      renderShelves();
     }
 
     function renderShelves() {
@@ -327,18 +742,25 @@ Middle Shelf • Office & Formal,Cotrell Edge Casual,"4,800",Tobacco Leather,"41
               <button type="button" aria-label="Scroll right" onclick="scrollShelf(${ri}, 1)">›</button>
             </div>
           </div>
-          <div class="shelf-track" id="track-${ri}">
-            ${row.items.map(shoe => `
-              <button type="button" class="shoe-item ${shoe.inStock ? "" : "sold"}" onclick="openModal(${shoe.id})" aria-label="${esc(shoe.name)}, ${esc(STORE_CONFIG.currency)} ${esc(shoe.price)}">
-                <div class="shoe-img-wrap">
-                  ${shoe.inStock ? "" : '<span class="sold-tag">Sold out</span>'}
-                  <img src="${esc(shoe.image)}" alt="" loading="lazy" onerror="this.onerror=null;this.src=PLACEHOLDER" />
-                </div>
-                <div class="shoe-meta">
-                  <div class="shoe-name">${esc(shoe.name)}</div>
-                  <div class="shoe-price">${esc(STORE_CONFIG.currency)} ${esc(shoe.price)}</div>
-                </div>
-              </button>`).join("")}
+          <div class="shelf-stage">
+            <div class="shelf-ledge-full"></div>
+            <div class="shelf-track" id="track-${ri}">
+              ${row.items.map(shoe => {
+                const matchesFilter = activeSizeFilter === "ALL" || (shoe.inStock && shoe.sizes.includes(activeSizeFilter));
+                return `
+                  <button type="button" class="shoe-item ${shoe.inStock ? "" : "sold"} ${matchesFilter ? "" : "dimmed"}" onclick="openModal(${shoe.id}, this)">
+                    <div class="shoe-img-wrap">
+                      ${shoe.inStock ? "" : '<span class="sold-tag">Sold out</span>'}
+                      <img src="${esc(shoe.image)}" alt="${esc(shoe.name)}" loading="lazy" onerror="this.onerror=null;this.src=PLACEHOLDER" />
+                    </div>
+                    <div class="shoe-meta">
+                      <div class="shoe-name">${esc(shoe.name)}</div>
+                      <div class="shoe-sub">${esc(shoe.color)}</div>
+                      <div class="shoe-price">${esc(STORE_CONFIG.currency)} ${esc(shoe.price)}</div>
+                    </div>
+                  </button>`;
+              }).join("")}
+            </div>
           </div>`;
         showroomEl.appendChild(section);
       });
@@ -346,26 +768,37 @@ Middle Shelf • Office & Formal,Cotrell Edge Casual,"4,800",Tobacco Leather,"41
 
     function scrollShelf(i, dir) {
       const t = document.getElementById("track-" + i);
-      t.scrollBy({ left: dir * t.clientWidth * 0.8 });
+      if (t) t.scrollBy({ left: dir * t.clientWidth * 0.75, behavior: "smooth" });
     }
 
     function findShoeById(id) {
-      for (const row of INVENTORY) { const f = row.items.find(i => i.id === id); if (f) return f; }
+      for (const row of INVENTORY) {
+        const f = row.items.find(i => i.id === id);
+        if (f) return f;
+      }
       return null;
     }
 
     // ==========================================================
-    // 4. POP-UP + WHATSAPP ORDER
+    // 4. MODAL & WHATSAPP CHECKOUT
     // ==========================================================
-    function openModal(id) {
+    function openModal(id, triggerEl) {
       activeShoe = findShoeById(id);
       if (!activeShoe) return;
-      selectedSize = "";                    // customer must choose, nothing is pre-picked
+      lastTriggerEl = triggerEl || document.activeElement;
+
+      // Smart default: match user's active filter if available, otherwise pick first size
+      if (activeSizeFilter !== "ALL" && activeShoe.sizes.includes(activeSizeFilter)) {
+        selectedSize = activeSizeFilter;
+      } else {
+        selectedSize = activeShoe.sizes[0] || "";
+      }
 
       document.getElementById("modal-title").textContent = activeShoe.name;
       document.getElementById("modal-price").textContent = `${STORE_CONFIG.currency} ${activeShoe.price}`;
       document.getElementById("modal-color").textContent = activeShoe.color;
       document.getElementById("modal-delivery").textContent = activeShoe.delivery;
+
       const img = document.getElementById("modal-img");
       img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
       img.src = activeShoe.image;
@@ -375,77 +808,100 @@ Middle Shelf • Office & Formal,Cotrell Edge Casual,"4,800",Tobacco Leather,"41
       stockEl.textContent = activeShoe.inStock ? "In Stock" : "Sold Out";
       stockEl.className = `stock-pill ${activeShoe.inStock ? "in" : "out"}`;
 
-      document.getElementById("size-label").textContent = activeShoe.inStock ? "Pick your size (EU):" : "Sizes we usually carry (EU):";
+      document.getElementById("size-label").textContent = activeShoe.inStock ? "Select Size (EU):" : "Sizes Usually Carried (EU):";
       renderSizeButtons();
       updateWhatsAppLink();
+
       document.getElementById("modal-backdrop").classList.add("active");
       document.body.classList.add("locked");
+      document.getElementById("modal-close").focus();
     }
 
     function renderSizeButtons() {
       const c = document.getElementById("modal-sizes");
       c.innerHTML = activeShoe.sizes.map(size => `
-        <button type="button" class="size-btn ${size === selectedSize ? "selected" : ""}" data-size="${esc(size)}">${esc(size)}</button>`).join("");
-      c.querySelectorAll(".size-btn").forEach(b => b.addEventListener("click", () => selectSize(b.dataset.size)));
+        <button type="button" class="size-btn ${size === selectedSize ? "selected" : ""}" data-size="${esc(size)}">${esc(size)}</button>
+      `).join("");
+      c.querySelectorAll(".size-btn").forEach(b => b.addEventListener("click", () => {
+        selectedSize = b.dataset.size;
+        renderSizeButtons();
+        updateWhatsAppLink();
+      }));
     }
-
-    function selectSize(size) { selectedSize = size; renderSizeButtons(); updateWhatsAppLink(); }
 
     function updateWhatsAppLink() {
       const btn = document.getElementById("wa-btn");
       const base = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=`;
-      btn.classList.remove("disabled", "notify");
+      btn.classList.remove("notify");
 
       if (!activeShoe.inStock) {
         btn.classList.add("notify");
-        btn.textContent = "Tell me when it's back";
-        const msg = `Hi ${STORE_CONFIG.name}, please let me know when the ${activeShoe.name} (${activeShoe.color}) is back in stock.`;
+        btn.textContent = "Notify Me When Restocked";
+        const msg = `Hi ${STORE_CONFIG.name}, please notify me when the ${activeShoe.name} (${activeShoe.color}) is back in stock.`;
         btn.href = base + encodeURIComponent(msg);
         return;
       }
-      if (!selectedSize) {
-        btn.classList.add("disabled");
-        btn.textContent = "Pick a size to order";
-        btn.href = "#";
-        return;
-      }
-      btn.textContent = `Order size ${selectedSize} on WhatsApp`;
-      const msg = `Hi ${STORE_CONFIG.name}, I'd like to order:\n• Shoe: ${activeShoe.name} (${activeShoe.color})\n• Size: EU ${selectedSize}\n• Price: ${STORE_CONFIG.currency} ${activeShoe.price}\n\nIs it available for delivery?`;
+
+      const sizeText = selectedSize ? `EU ${selectedSize}` : "my size";
+      btn.textContent = selectedSize ? `Order Size ${selectedSize} on WhatsApp` : "Order on WhatsApp";
+      const msg = `Hi ${STORE_CONFIG.name}, I'd like to order:\n• Shoe: ${activeShoe.name} (${activeShoe.color})\n• Size: ${sizeText}\n• Price: ${STORE_CONFIG.currency} ${activeShoe.price}\n\nIs it available for delivery?`;
       btn.href = base + encodeURIComponent(msg);
     }
 
     function closeModal() {
       document.getElementById("modal-backdrop").classList.remove("active");
       document.body.classList.remove("locked");
+      if (lastTriggerEl && typeof lastTriggerEl.focus === "function") lastTriggerEl.focus();
     }
-    function closeModalOnBackdrop(e) { if (e.target.id === "modal-backdrop") closeModal(); }
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === "modal-backdrop") closeModal();
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeModal();
+    });
 
     // ==========================================================
-    // 5. START + AUTO-REFRESH
+    // 5. INIT & LIVE SYNC
     // ==========================================================
-    async function refresh(first) {
+    async function refresh() {
       const { data, source } = await loadInventory();
       const sig = JSON.stringify(data);
       setTagline(source);
-      if (sig === lastSig) return;          // nothing changed, don't disturb the shopper
+      if (sig === lastSig) return;
       lastSig = sig;
       INVENTORY = data;
-      // keep the open pop-up in sync if the shoe is still there
-      const openName = activeShoe && document.getElementById("modal-backdrop").classList.contains("active") ? activeShoe.name : null;
+
+      const openKey = activeShoe && document.getElementById("modal-backdrop").classList.contains("active") ? activeShoe.key : null;
       const scrolls = [...document.querySelectorAll(".shelf-track")].map(t => t.scrollLeft);
+
+      renderSizeFilter();
       renderShelves();
-      document.querySelectorAll(".shelf-track").forEach((t, i) => { t.style.scrollBehavior = "auto"; t.scrollLeft = scrolls[i] || 0; t.style.scrollBehavior = ""; });
-      if (openName) {
-        const again = INVENTORY.flatMap(r => r.items).find(i => i.name === openName);
-        if (again) { const keep = selectedSize; activeShoe = again; selectedSize = again.sizes.includes(keep) ? keep : ""; renderSizeButtons(); updateWhatsAppLink(); }
-        else closeModal();
+
+      document.querySelectorAll(".shelf-track").forEach((t, i) => {
+        t.style.scrollBehavior = "auto";
+        t.scrollLeft = scrolls[i] || 0;
+        t.style.scrollBehavior = "";
+      });
+
+      if (openKey) {
+        const match = INVENTORY.flatMap(r => r.items).find(i => i.key === openKey);
+        if (match) {
+          const keep = selectedSize;
+          activeShoe = match;
+          selectedSize = match.sizes.includes(keep) ? keep : (match.sizes[0] || "");
+          renderSizeButtons();
+          updateWhatsAppLink();
+        } else {
+          closeModal();
+        }
       }
     }
 
-    refresh(true);
+    refresh();
     if (STORE_CONFIG.SHEET_CSV_URL) {
-      setInterval(() => { if (!document.hidden) refresh(false); }, STORE_CONFIG.refreshMinutes * 60000);
+      setInterval(() => { if (!document.hidden) refresh(); }, STORE_CONFIG.refreshMinutes * 60000);
     }
   </script>
 </body>
