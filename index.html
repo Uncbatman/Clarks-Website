@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clarks Shoe Store — Showroom</title>
+  <style>
+    :root {
+      --bg-wall: #121214;
+      --bg-card: #1c1c21;
+      --shelf-top: #3a2d24;
+      --shelf-front: #261d17;
+      --text-main: #f5f5f7;
+      --text-muted: #9e9ea8;
+      --accent: #e5a93c;
+      --whatsapp: #25d366;
+      --in-stock: #34c759;
+      --out-stock: #ff453a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-wall); color: var(--text-main); line-height: 1.5;
+      overflow-x: hidden; padding-bottom: 60px;
+    }
+    body.locked { overflow: hidden; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(18,18,20,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,.08); padding: 16px 20px;
+    }
+    .header-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .brand h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+    .brand p { font-size: .78rem; color: var(--text-muted); }
+    .header-badge {
+      font-size: .75rem; font-weight: 600; color: var(--accent);
+      background: rgba(229,169,60,.12); border: 1px solid rgba(229,169,60,.3);
+      padding: 6px 12px; border-radius: 99px; white-space: nowrap;
+    }
+
+    main { max-width: 1200px; margin: 24px auto 0; padding: 0 16px; }
+    .status { text-align: center; color: var(--text-muted); font-size: .9rem; padding: 40px 0; }
+    .shelf-section { margin-bottom: 36px; }
+    .shelf-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; padding: 0 4px; }
+    .shelf-header h2 { font-size: 1.05rem; font-weight: 600; letter-spacing: .3px; }
+    .shelf-nav { display: none; gap: 6px; }
+    .shelf-nav button {
+      background: rgba(255,255,255,.08); border: none; color: var(--text-main);
+      width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer;
+    }
+    .swipe-hint { font-size: .75rem; color: var(--text-muted); }
+    @media (hover: hover) and (min-width: 768px) { .shelf-nav { display: flex; } .swipe-hint { display: none; } }
+
+    .shelf-track {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+      padding: 10px 6px 4px; scrollbar-width: none;
+    }
+    .shelf-track::-webkit-scrollbar { display: none; }
+
+    .shoe-item {
+      flex: 0 0 175px; padding: 0 9px; scroll-snap-align: start; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      background: none; border: none; color: inherit; font: inherit;
+    }
+    @media (min-width: 768px) { .shoe-item { flex-basis: 220px; } }
+
+    /* The shelf: each item draws its own slice of ledge, so shoes always sit on it */
+    .shoe-img-wrap {
+      width: 100%; height: 135px; display: flex; align-items: flex-end; justify-content: center;
+      position: relative; padding-bottom: 12px;
+    }
+    @media (min-width: 768px) { .shoe-img-wrap { height: 165px; } }
+    .shoe-img-wrap::after {
+      content: ""; position: absolute; left: -9px; right: -9px; bottom: 0; height: 12px;
+      background: linear-gradient(180deg, var(--shelf-top), var(--shelf-front));
+      box-shadow: 0 12px 20px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .shoe-img-wrap img {
+      position: relative; z-index: 1; max-width: 92%; max-height: 100%; object-fit: contain;
+      filter: drop-shadow(0 10px 8px rgba(0,0,0,.65)); border-radius: 10px;
+    }
+    .shoe-item.sold .shoe-img-wrap img { opacity: .45; }
+    .sold-tag {
+      position: absolute; z-index: 2; top: 6px; right: 14px; font-size: .68rem; font-weight: 700;
+      color: var(--out-stock); background: rgba(255,69,58,.15); padding: 2px 8px; border-radius: 99px;
+    }
+    .shoe-meta { margin-top: 18px; width: 100%; }
+    .shoe-name { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .shoe-price { font-size: .85rem; color: var(--accent); font-weight: 700; margin-top: 2px; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    }
+    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
+    @media (min-width: 768px) { .modal-backdrop { align-items: center; padding: 24px; } }
+    .modal-card {
+      background: var(--bg-card); width: 100%; max-width: 520px; border-radius: 24px 24px 0 0;
+      border: 1px solid rgba(255,255,255,.1); padding: 24px 20px 28px;
+      transform: translateY(100%); transition: transform .3s cubic-bezier(.22,1,.36,1);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-backdrop.active .modal-card { transform: translateY(0); }
+    @media (min-width: 768px) {
+      .modal-card { border-radius: 20px; padding: 28px; transform: scale(.95); }
+      .modal-backdrop.active .modal-card { transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+    .modal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .stock-pill { font-size: .75rem; font-weight: 700; padding: 4px 10px; border-radius: 99px; text-transform: uppercase; letter-spacing: .4px; }
+    .stock-pill.in { background: rgba(52,199,89,.15); color: var(--in-stock); }
+    .stock-pill.out { background: rgba(255,69,58,.15); color: var(--out-stock); }
+    .close-btn {
+      background: rgba(255,255,255,.08); border: none; color: var(--text-main);
+      width: 34px; height: 34px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
+    }
+    .modal-img-box {
+      background: radial-gradient(circle, rgba(255,255,255,.06) 0%, rgba(0,0,0,0) 70%);
+      height: 190px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+    }
+    .modal-img-box img { max-height: 175px; max-width: 90%; object-fit: contain; filter: drop-shadow(0 14px 16px rgba(0,0,0,.7)); border-radius: 12px; }
+    .modal-title { font-size: 1.35rem; font-weight: 700; }
+    .modal-price { font-size: 1.15rem; font-weight: 700; color: var(--accent); margin: 4px 0 16px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: rgba(0,0,0,.25); padding: 14px; border-radius: 12px; margin-bottom: 18px; font-size: .85rem; }
+    .detail-label { color: var(--text-muted); font-size: .75rem; display: block; margin-bottom: 2px; }
+    .size-label { font-size: .8rem; color: var(--text-muted); margin-bottom: 8px; display: block; }
+    .size-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .size-btn {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); color: var(--text-main);
+      padding: 8px 14px; border-radius: 8px; font-size: .85rem; font-weight: 600; cursor: pointer;
+    }
+    .size-btn.selected { background: var(--accent); color: #121214; border-color: var(--accent); }
+    .wa-order-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 15px;
+      border-radius: 12px; background: var(--whatsapp); color: #0b1a10; font-size: 1rem; font-weight: 700;
+      text-decoration: none; border: none; cursor: pointer;
+    }
+    .wa-order-btn.disabled { background: #3a3a42; color: #8e8e98; pointer-events: none; }
+    .wa-order-btn.notify { background: transparent; border: 1px solid var(--whatsapp); color: var(--whatsapp); }
+
+    .wa-float {
+      position: fixed; right: 16px; bottom: 16px; z-index: 30; background: var(--whatsapp); color: #0b1a10;
+      font-weight: 700; font-size: .9rem; text-decoration: none; padding: 12px 18px; border-radius: 99px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.5);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <h1 id="store-name">Clarks Shoe Store</h1>
+        <p id="store-tagline"></p>
+      </div>
+      <div class="header-badge" id="header-badge">Same-Day Delivery</div>
+    </div>
+  </header>
+
+  <main id="showroom"><div class="status">Loading the shelves…</div></main>
+
+  <a class="wa-float" id="wa-float" href="#" target="_blank" rel="noopener">Chat on WhatsApp</a>
+
+  <div class="modal-backdrop" id="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-top">
+        <span class="stock-pill in" id="modal-stock">In Stock</span>
+        <button class="close-btn" onclick="closeModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-img-box"><img id="modal-img" src="" alt="" /></div>
+      <h3 class="modal-title" id="modal-title"></h3>
+      <div class="modal-price" id="modal-price"></div>
+      <div class="detail-grid">
+        <div><span class="detail-label">Colour</span><strong id="modal-color"></strong></div>
+        <div><span class="detail-label">Delivery</span><strong id="modal-delivery"></strong></div>
+      </div>
+      <span class="size-label" id="size-label">Pick your size (EU):</span>
+      <div class="size-options" id="modal-sizes"></div>
+      <a id="wa-btn" class="wa-order-btn disabled" href="#" target="_blank" rel="noopener">Pick a size to order</a>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================================
+    // 1. PER-CLIENT SETTINGS: the only part you edit per client
+    // ==========================================================
+    const STORE_CONFIG = {
+      name: "Clarks Shoe Store",
+      tagline: "Nairobi Showroom • Tap any pair for details",
+      badge: "Same-Day Delivery",          // leave "" to hide
+      whatsappNumber: "254700000000",       // client's number, no + sign
+      currency: "KSh",
+
+      // Paste the Google Sheet "Publish to web → CSV" link here.
+      // While empty, the sample shoes below are shown instead.
+      SHEET_CSV_URL: "",
+
+      refreshMinutes: 2                     // how often the page re-checks the sheet
+    };
+
+    // Sample stock, shown only when no sheet is connected (or the sheet can't be reached
+    // and nothing was saved from an earlier visit).
+    const SAMPLE_CSV = `shelf,name,price,color,sizes,in_stock,delivery,image
+Top Shelf • Signature Originals,Clarks Desert Boot,"6,500",Beeswax Leather,"40, 41, 42, 43, 44",yes,2–4 hrs in Nairobi (KSh 300),https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&w=500&q=80
+Top Shelf • Signature Originals,Wallabee Suede Low,"5,800",Maple Suede,"39, 40, 41, 42",yes,2–4 hrs in Nairobi (KSh 300),https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=500&q=80
+Top Shelf • Signature Originals,Torhill Bee Wedge,"6,200",Black Nubuck,"38, 39, 40, 41",yes,Same-day rider / Countrywide,https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=500&q=80
+Top Shelf • Signature Originals,Caravan Oxford,"5,500",Sand Suede,"41, 42, 43",no,Restocking soon,https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=500&q=80
+Middle Shelf • Office & Formal,Tilden Cap Derby,"5,200",Dark Tan Leather,"40, 41, 42, 43, 44, 45",yes,2–4 hrs in Nairobi (KSh 300),https://images.unsplash.com/photo-1614252369475-531eba835eb1?auto=format&fit=crop&w=500&q=80
+Middle Shelf • Office & Formal,Whiddon Pace Oxford,"5,400",Jet Black Leather,"41, 42, 43, 44",yes,2–4 hrs in Nairobi (KSh 300),https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=500&q=80
+Middle Shelf • Office & Formal,Bradley Vibe Slip-On,"4,900",Espresso Brown,"40, 42, 43",yes,Same-day rider / Countrywide,https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=500&q=80
+Middle Shelf • Office & Formal,Cotrell Edge Casual,"4,800",Tobacco Leather,"41, 42, 43, 44",yes,Same-day rider / Countrywide,https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=500&q=80`;
+
+    // ==========================================================
+    // 2. SHEET READING
+    // ==========================================================
+    const CACHE_KEY = "showroom-stock-v1:" + STORE_CONFIG.name;
+    const PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><rect width="300" height="200" rx="16" fill="#2a2a31"/><text x="150" y="106" fill="#9e9ea8" font-family="sans-serif" font-size="14" text-anchor="middle">Photo coming soon</text></svg>');
+
+    // Reads CSV, including quoted cells that contain commas.
+    function parseCSV(text) {
+      const rows = []; let row = [], cell = "", inQ = false;
+      text = text.replace(/^\uFEFF/, "");
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQ) {
+          if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+          else if (c === '"') inQ = false;
+          else cell += c;
+        } else if (c === '"') inQ = true;
+        else if (c === ",") { row.push(cell); cell = ""; }
+        else if (c === "\n" || c === "\r") {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(cell); cell = "";
+          if (row.some(v => v.trim() !== "")) rows.push(row);
+          row = [];
+        } else cell += c;
+      }
+      row.push(cell);
+      if (row.some(v => v.trim() !== "")) rows.push(row);
+      return rows;
+    }
+
+    // Turns sheet rows into shelves. Column names can be in any order; unknown columns are ignored.
+    function csvToInventory(text) {
+      const rows = parseCSV(text);
+      if (rows.length < 2) return [];
+      const head = rows[0].map(h => h.trim().toLowerCase().replace(/[\s-]+/g, "_"));
+      const col = name => head.indexOf(name);
+      const get = (r, name) => { const i = col(name); return i < 0 ? "" : (r[i] || "").trim(); };
+
+      const shelves = [], byName = {};
+      rows.slice(1).forEach(r => {
+        const name = get(r, "name");
+        if (!name) return;
+        const shelfName = get(r, "shelf") || "Our Shoes";
+        if (!byName[shelfName]) { byName[shelfName] = { shelf: shelfName, items: [] }; shelves.push(byName[shelfName]); }
+        const stockWord = get(r, "in_stock").toLowerCase();
+        byName[shelfName].items.push({
+          id: shelves.reduce((n, s) => n + s.items.length, 0),
+          name,
+          price: get(r, "price"),
+          color: get(r, "color") || "—",
+          sizes: get(r, "sizes").split(/[,;/|\s]+/).filter(Boolean),
+          inStock: ["yes", "y", "true", "1", "in stock", "instock"].includes(stockWord),
+          delivery: get(r, "delivery") || "Ask us on WhatsApp",
+          image: get(r, "image") || PLACEHOLDER
+        });
+      });
+      return shelves;
+    }
+
+    async function loadInventory() {
+      if (!STORE_CONFIG.SHEET_CSV_URL) return { data: csvToInventory(SAMPLE_CSV), source: "sample" };
+      try {
+        const res = await fetch(STORE_CONFIG.SHEET_CSV_URL + (STORE_CONFIG.SHEET_CSV_URL.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const text = await res.text();
+        const data = csvToInventory(text);
+        if (!data.length) throw new Error("Sheet had no shoes");
+        try { localStorage.setItem(CACHE_KEY, text); } catch (e) {}
+        return { data, source: "live" };
+      } catch (err) {
+        try {
+          const saved = localStorage.getItem(CACHE_KEY);
+          if (saved) { const data = csvToInventory(saved); if (data.length) return { data, source: "saved" }; }
+        } catch (e) {}
+        return { data: csvToInventory(SAMPLE_CSV), source: "sample" };
+      }
+    }
+
+    // ==========================================================
+    // 3. SHOWROOM
+    // ==========================================================
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const showroomEl = document.getElementById("showroom");
+    let INVENTORY = [], activeShoe = null, selectedSize = "", lastSig = "";
+
+    document.getElementById("store-name").textContent = STORE_CONFIG.name;
+    document.title = STORE_CONFIG.name + " — Showroom";
+    const badge = document.getElementById("header-badge");
+    if (STORE_CONFIG.badge) badge.textContent = STORE_CONFIG.badge; else badge.hidden = true;
+    document.getElementById("wa-float").href =
+      `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${encodeURIComponent("Hi " + STORE_CONFIG.name + ", I have a question.")}`;
+
+    function setTagline(source) {
+      const el = document.getElementById("store-tagline");
+      const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      el.textContent = source === "live" ? `${STORE_CONFIG.tagline} • Stock checked ${t}` : STORE_CONFIG.tagline;
+    }
+
+    function renderShelves() {
+      showroomEl.innerHTML = "";
+      INVENTORY.forEach((row, ri) => {
+        const section = document.createElement("section");
+        section.className = "shelf-section";
+        section.innerHTML = `
+          <div class="shelf-header">
+            <h2>${esc(row.shelf)}</h2>
+            <span class="swipe-hint">Swipe →</span>
+            <div class="shelf-nav">
+              <button type="button" aria-label="Scroll left" onclick="scrollShelf(${ri}, -1)">‹</button>
+              <button type="button" aria-label="Scroll right" onclick="scrollShelf(${ri}, 1)">›</button>
+            </div>
+          </div>
+          <div class="shelf-track" id="track-${ri}">
+            ${row.items.map(shoe => `
+              <button type="button" class="shoe-item ${shoe.inStock ? "" : "sold"}" onclick="openModal(${shoe.id})" aria-label="${esc(shoe.name)}, ${esc(STORE_CONFIG.currency)} ${esc(shoe.price)}">
+                <div class="shoe-img-wrap">
+                  ${shoe.inStock ? "" : '<span class="sold-tag">Sold out</span>'}
+                  <img src="${esc(shoe.image)}" alt="" loading="lazy" onerror="this.onerror=null;this.src=PLACEHOLDER" />
+                </div>
+                <div class="shoe-meta">
+                  <div class="shoe-name">${esc(shoe.name)}</div>
+                  <div class="shoe-price">${esc(STORE_CONFIG.currency)} ${esc(shoe.price)}</div>
+                </div>
+              </button>`).join("")}
+          </div>`;
+        showroomEl.appendChild(section);
+      });
+    }
+
+    function scrollShelf(i, dir) {
+      const t = document.getElementById("track-" + i);
+      t.scrollBy({ left: dir * t.clientWidth * 0.8 });
+    }
+
+    function findShoeById(id) {
+      for (const row of INVENTORY) { const f = row.items.find(i => i.id === id); if (f) return f; }
+      return null;
+    }
+
+    // ==========================================================
+    // 4. POP-UP + WHATSAPP ORDER
+    // ==========================================================
+    function openModal(id) {
+      activeShoe = findShoeById(id);
+      if (!activeShoe) return;
+      selectedSize = "";                    // customer must choose, nothing is pre-picked
+
+      document.getElementById("modal-title").textContent = activeShoe.name;
+      document.getElementById("modal-price").textContent = `${STORE_CONFIG.currency} ${activeShoe.price}`;
+      document.getElementById("modal-color").textContent = activeShoe.color;
+      document.getElementById("modal-delivery").textContent = activeShoe.delivery;
+      const img = document.getElementById("modal-img");
+      img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
+      img.src = activeShoe.image;
+      img.alt = activeShoe.name;
+
+      const stockEl = document.getElementById("modal-stock");
+      stockEl.textContent = activeShoe.inStock ? "In Stock" : "Sold Out";
+      stockEl.className = `stock-pill ${activeShoe.inStock ? "in" : "out"}`;
+
+      document.getElementById("size-label").textContent = activeShoe.inStock ? "Pick your size (EU):" : "Sizes we usually carry (EU):";
+      renderSizeButtons();
+      updateWhatsAppLink();
+      document.getElementById("modal-backdrop").classList.add("active");
+      document.body.classList.add("locked");
+    }
+
+    function renderSizeButtons() {
+      const c = document.getElementById("modal-sizes");
+      c.innerHTML = activeShoe.sizes.map(size => `
+        <button type="button" class="size-btn ${size === selectedSize ? "selected" : ""}" data-size="${esc(size)}">${esc(size)}</button>`).join("");
+      c.querySelectorAll(".size-btn").forEach(b => b.addEventListener("click", () => selectSize(b.dataset.size)));
+    }
+
+    function selectSize(size) { selectedSize = size; renderSizeButtons(); updateWhatsAppLink(); }
+
+    function updateWhatsAppLink() {
+      const btn = document.getElementById("wa-btn");
+      const base = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=`;
+      btn.classList.remove("disabled", "notify");
+
+      if (!activeShoe.inStock) {
+        btn.classList.add("notify");
+        btn.textContent = "Tell me when it's back";
+        const msg = `Hi ${STORE_CONFIG.name}, please let me know when the ${activeShoe.name} (${activeShoe.color}) is back in stock.`;
+        btn.href = base + encodeURIComponent(msg);
+        return;
+      }
+      if (!selectedSize) {
+        btn.classList.add("disabled");
+        btn.textContent = "Pick a size to order";
+        btn.href = "#";
+        return;
+      }
+      btn.textContent = `Order size ${selectedSize} on WhatsApp`;
+      const msg = `Hi ${STORE_CONFIG.name}, I'd like to order:\n• Shoe: ${activeShoe.name} (${activeShoe.color})\n• Size: EU ${selectedSize}\n• Price: ${STORE_CONFIG.currency} ${activeShoe.price}\n\nIs it available for delivery?`;
+      btn.href = base + encodeURIComponent(msg);
+    }
+
+    function closeModal() {
+      document.getElementById("modal-backdrop").classList.remove("active");
+      document.body.classList.remove("locked");
+    }
+    function closeModalOnBackdrop(e) { if (e.target.id === "modal-backdrop") closeModal(); }
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+    // ==========================================================
+    // 5. START + AUTO-REFRESH
+    // ==========================================================
+    async function refresh(first) {
+      const { data, source } = await loadInventory();
+      const sig = JSON.stringify(data);
+      setTagline(source);
+      if (sig === lastSig) return;          // nothing changed, don't disturb the shopper
+      lastSig = sig;
+      INVENTORY = data;
+      // keep the open pop-up in sync if the shoe is still there
+      const openName = activeShoe && document.getElementById("modal-backdrop").classList.contains("active") ? activeShoe.name : null;
+      const scrolls = [...document.querySelectorAll(".shelf-track")].map(t => t.scrollLeft);
+      renderShelves();
+      document.querySelectorAll(".shelf-track").forEach((t, i) => { t.style.scrollBehavior = "auto"; t.scrollLeft = scrolls[i] || 0; t.style.scrollBehavior = ""; });
+      if (openName) {
+        const again = INVENTORY.flatMap(r => r.items).find(i => i.name === openName);
+        if (again) { const keep = selectedSize; activeShoe = again; selectedSize = again.sizes.includes(keep) ? keep : ""; renderSizeButtons(); updateWhatsAppLink(); }
+        else closeModal();
+      }
+    }
+
+    refresh(true);
+    if (STORE_CONFIG.SHEET_CSV_URL) {
+      setInterval(() => { if (!document.hidden) refresh(false); }, STORE_CONFIG.refreshMinutes * 60000);
+    }
+  </script>
+</body>
+</html>
